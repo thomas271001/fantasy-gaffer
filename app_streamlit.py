@@ -67,7 +67,7 @@ if selected_teams:
     df_filtered = df_filtered[df_filtered["team"].isin(selected_teams)]
 df_filtered = df_filtered[df_filtered["predicted_points"] >= min_pp]
 
-st.subheader("All Players (filtered)")
+st.subheader("Players")
 st.dataframe(
     df_filtered.sort_values("predicted_points", ascending=False).reset_index(drop=True),
     use_container_width=True,
