@@ -1,0 +1,11 @@
+# minimal requirements for pipeline + Streamlit UI
+pandas>=1.5
+numpy
+lightgbm
+scikit-learn
+joblib
+pulp
+requests
+pyarrow
+streamlit==1.30.0
+plotly
