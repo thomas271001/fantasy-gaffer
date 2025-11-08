@@ -119,33 +119,62 @@ else:
     else:
         st.info("Unable to suggest a starting XI from the selected squad (missing players).")
 
-# Value plot (fixed / robust)
+# Value plot (fixed / robust) - Replace the existing section with this
 st.subheader("Value Picks & Distribution")
-# compute points per value safely (avoid divide by zero)
-plot_df = pred_df.copy()
-plot_df = plot_df[plot_df["value"] > 0]  # exclude any zero-cost/parsers
-if plot_df.empty:
-    st.warning("No numeric value/predicted_points data available for distribution plot.")
-else:
-    plot_df["points_per_value"] = plot_df["predicted_points"] / plot_df["value"]
-    # optionally drop extremely low predicted points if you prefer
-    plot_df = plot_df.dropna(subset=["predicted_points", "value"])
-    if plot_df.empty:
-        st.warning("No valid rows to plot after cleaning.")
-    else:
-        fig2 = px.scatter(
-            plot_df,
-            x="value",
-            y="predicted_points",
-            color="position_name",
-            hover_data=["name", "team", "points_per_value"],
-            title="Value Picks & Distribution",
-            template="plotly_dark",
-        )
-        fig2.update_traces(marker=dict(size=8, opacity=0.85))
-        fig2.update_layout(xaxis_title="Player Value (M)", yaxis_title="Predicted Points")
-        st.plotly_chart(fig2, use_container_width=True)
 
+# Create a copy and do robust filtering
+plot_df = pred_df.copy()
+
+# Debug info
+st.write(f"Total players before filtering: {len(plot_df)}")
+
+# Filter out invalid data
+plot_df = plot_df[
+    (plot_df["value"] > 0) & 
+    (plot_df["predicted_points"].notna()) & 
+    (plot_df["value"].notna())
+].copy()
+
+st.write(f"Players after filtering (value > 0 and valid data): {len(plot_df)}")
+
+if plot_df.empty:
+    st.warning("No valid data available for distribution plot. Check your predictions_next_gw.csv file.")
+else:
+    # Calculate points per value
+    plot_df["points_per_value"] = plot_df["predicted_points"] / plot_df["value"]
+    
+    # Show value ranges for debugging
+    st.write(f"Value range: {plot_df['value'].min():.2f} - {plot_df['value'].max():.2f}")
+    st.write(f"Predicted points range: {plot_df['predicted_points'].min():.2f} - {plot_df['predicted_points'].max():.2f}")
+    
+    # Create scatter plot
+    fig2 = px.scatter(
+        plot_df,
+        x="value",
+        y="predicted_points",
+        color="position_name",
+        hover_data=["name", "team", "points_per_value"],
+        title="Value Picks & Distribution",
+        template="plotly_dark",
+    )
+    
+    # Make points more visible
+    fig2.update_traces(marker=dict(size=10, opacity=0.9, line=dict(width=1, color='white')))
+    fig2.update_layout(
+        xaxis_title="Player Value (M)", 
+        yaxis_title="Predicted Points",
+        height=600
+    )
+    
+    st.plotly_chart(fig2, use_container_width=True)
+    
+    # Show top value picks
+    st.subheader("Top 10 Value Picks (Points per £M)")
+    top_value = plot_df.nlargest(10, "points_per_value")[
+        ["name", "team", "position_name", "value", "predicted_points", "points_per_value"]
+    ]
+    top_value["points_per_value"] = top_value["points_per_value"].round(2)
+    st.dataframe(top_value, use_container_width=True)
 st.markdown("Download current predictions or selected squad:")
 c1, c2 = st.columns(2)
 with c1:
