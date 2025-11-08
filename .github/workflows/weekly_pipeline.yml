@@ -1,12 +1,13 @@
-name: Weekly FPL Pipeline
+name: Debug FPL Pipeline (list + artifacts)
 
 on:
-  schedule:
-    - cron: "0 7 * * FRI"   # every Friday 07:00 UTC; change as needed
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  run-pipeline:
+  debug:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -17,19 +18,53 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: '3.10'
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run pipeline
+      - name: Run pipeline (same as run_fpl_pipeline.py)
         run: |
-          python run_fpl_pipeline.py
+          python run_fpl_pipeline.py || true
+        # || true so we continue to debug even if the script exits nonzero
 
-      - name: Commit outputs
+      - name: Show repo workspace (recursive)
         run: |
-          git config --global user.name "github-actions[bot]"
+          echo "=== WORKDIR ==="
+          pwd
+          echo "=== LS -R workspace ==="
+          ls -la
+          ls -la .github || true
+          echo "=== LS -R repo dir ==="
+          ls -R .
+
+      - name: Show data dir if exists
+        run: |
+          if [ -d "./data" ]; then
+            echo "Data dir exists - listing files:"
+            ls -la ./data || true
+            echo "Sample contents (head of CSVs):"
+            for f in ./data/*.csv; do
+              echo "---- $f ----"
+              head -n 20 "$f" || true
+            done
+          else
+            echo "No ./data directory found"
+          fi
+
+      - name: Upload CSV artifacts (if exist)
+        uses: actions/upload-artifact@v4
+        with:
+          name: fpl-data-artifacts
+          path: ./data/*.csv
+
+      - name: Try to commit outputs (robust)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
           git config --global user.email "actions@github.com"
-          git add data/predictions_next_gw.csv data/selected_squad.csv
-          git commit -m "Automated pipeline outputs: predictions + selected squad" || echo "No changes to commit"
-          git push || echo "Push failed (check permissions)"
+          git config --global user.name "github-actions[bot]"
+          git status --porcelain
+          git add -A data || true
+          git commit -m "CI: add pipeline outputs (debug)" || echo "No changes to commit or commit failed"
+          git push || echo "Push failed (permissions or remote issue)"
