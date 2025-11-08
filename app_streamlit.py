@@ -119,14 +119,28 @@ else:
     else:
         st.info("Unable to suggest a starting XI from the selected squad (missing players).")
 
-# Value plot (fixed / robust) - Replace the existing section with this
+# Value plot (DIAGNOSTIC VERSION) - Replace the existing section
 st.subheader("Value Picks & Distribution")
 
-# Create a copy and do robust filtering
+# Create a copy for diagnosis
 plot_df = pred_df.copy()
 
-# Debug info
-st.write(f"Total players before filtering: {len(plot_df)}")
+# Show raw data sample
+with st.expander("🔍 Click to see raw data diagnosis"):
+    st.write("**First 5 rows of prediction data:**")
+    st.dataframe(pred_df.head())
+    
+    st.write("**Data types:**")
+    st.write(pred_df[["value", "predicted_points"]].dtypes)
+    
+    st.write("**Value column stats:**")
+    st.write(pred_df["value"].describe())
+    
+    st.write("**Predicted points stats:**")
+    st.write(pred_df["predicted_points"].describe())
+    
+    st.write(f"**Rows with value > 0:** {len(pred_df[pred_df['value'] > 0])}")
+    st.write(f"**Rows with predicted_points > 0:** {len(pred_df[pred_df['predicted_points'] > 0])}")
 
 # Filter out invalid data
 plot_df = plot_df[
@@ -135,46 +149,57 @@ plot_df = plot_df[
     (plot_df["value"].notna())
 ].copy()
 
-st.write(f"Players after filtering (value > 0 and valid data): {len(plot_df)}")
+st.info(f"📊 Plotting {len(plot_df)} players")
 
-if plot_df.empty:
-    st.warning("No valid data available for distribution plot. Check your predictions_next_gw.csv file.")
-else:
-    # Calculate points per value
-    plot_df["points_per_value"] = plot_df["predicted_points"] / plot_df["value"]
-    
-    # Show value ranges for debugging
-    st.write(f"Value range: {plot_df['value'].min():.2f} - {plot_df['value'].max():.2f}")
-    st.write(f"Predicted points range: {plot_df['predicted_points'].min():.2f} - {plot_df['predicted_points'].max():.2f}")
-    
-    # Create scatter plot
-    fig2 = px.scatter(
-        plot_df,
-        x="value",
-        y="predicted_points",
-        color="position_name",
-        hover_data=["name", "team", "points_per_value"],
-        title="Value Picks & Distribution",
-        template="plotly_dark",
+if len(plot_df) == 0:
+    st.error("❌ No valid data to plot! Check the expander above for diagnosis.")
+    st.stop()
+
+# Calculate points per value
+plot_df["points_per_value"] = plot_df["predicted_points"] / plot_df["value"]
+
+# Show what we're about to plot
+st.write(f"**Value range:** £{plot_df['value'].min():.1f}M - £{plot_df['value'].max():.1f}M")
+st.write(f"**Points range:** {plot_df['predicted_points'].min():.2f} - {plot_df['predicted_points'].max():.2f}")
+
+# Create scatter plot with explicit sizing
+fig2 = px.scatter(
+    plot_df,
+    x="value",
+    y="predicted_points",
+    color="position_name",
+    hover_data=["name", "team", "points_per_value"],
+    title=f"Value Picks & Distribution ({len(plot_df)} players)",
+    template="plotly_dark",
+)
+
+# Make points VERY visible
+fig2.update_traces(
+    marker=dict(
+        size=12, 
+        opacity=1.0,
+        line=dict(width=2, color='white')
     )
-    
-    # Make points more visible
-    fig2.update_traces(marker=dict(size=10, opacity=0.9, line=dict(width=1, color='white')))
-    fig2.update_layout(
-        xaxis_title="Player Value (M)", 
-        yaxis_title="Predicted Points",
-        height=600
-    )
-    
-    st.plotly_chart(fig2, use_container_width=True)
-    
-    # Show top value picks
-    st.subheader("Top 10 Value Picks (Points per £M)")
-    top_value = plot_df.nlargest(10, "points_per_value")[
-        ["name", "team", "position_name", "value", "predicted_points", "points_per_value"]
-    ]
-    top_value["points_per_value"] = top_value["points_per_value"].round(2)
-    st.dataframe(top_value, use_container_width=True)
+)
+
+fig2.update_layout(
+    xaxis_title="Player Value (£M)", 
+    yaxis_title="Predicted Points (Next GW)",
+    height=600,
+    showlegend=True
+)
+
+st.plotly_chart(fig2, use_container_width=True)
+
+# Show top value picks
+st.subheader("Top 10 Value Picks (Points per £M)")
+top_value = plot_df.nlargest(10, "points_per_value")[
+    ["name", "team", "position_name", "value", "predicted_points", "points_per_value"]
+].copy()
+top_value["points_per_value"] = top_value["points_per_value"].round(2)
+top_value["value"] = top_value["value"].round(1)
+top_value["predicted_points"] = top_value["predicted_points"].round(2)
+st.dataframe(top_value, use_container_width=True)
 st.markdown("Download current predictions or selected squad:")
 c1, c2 = st.columns(2)
 with c1:
