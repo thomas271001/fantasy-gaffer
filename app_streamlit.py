@@ -86,7 +86,7 @@ else:
     st.plotly_chart(fig, use_container_width=True)
 
     # Starting XI suggestion
-    st.subheader("Suggested Starting XI (auto)")
+    st.subheader("Suggested Starting XI ")
 
     def suggest_starting_xi(squad_df):
         if squad_df.empty:
