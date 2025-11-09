@@ -137,8 +137,8 @@ You can trigger it manually from the **Actions** tab on GitHub.
 ### 🧰 1. Clone the repository
 
 ```bash
-git clone https://github.com/thomas271001/fpl-pipeline.git
-cd fpl-pipeline
+git clone https://github.com/thomas271001/fantasy-gaffer.git
+cd fantasy-gaffer
 ```
 
 ### 🐍 2. Install dependencies
