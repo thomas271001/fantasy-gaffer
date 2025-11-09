@@ -46,7 +46,7 @@ A **Streamlit dashboard** visualizes model predictions, recommended lineups, and
 ## 🏗️ Project Architecture
 
 ```text
-📁 fpl-pipeline/
+📁 fantasy-gaffer/
 ├── data/                         # generated CSVs (predictions, squad)
 ├── run_fpl_pipeline.py           # main ML + optimization pipeline
 ├── app_streamlit.py              # Streamlit dashboard
