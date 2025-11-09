@@ -207,9 +207,9 @@ http://localhost:8501
 ## 👤 Author
 
 **Thomas**
-Machine Learning & Data Science Enthusiast
-🔗 [LinkedIn](https://www.linkedin.com/in/thomas271001/)
-📧 [thomas.anto.moothedan@gmail.com](mailto:thomas.anto.moothedan@gmail.com) 
+*Machine Learning & Data Science Enthusiast
+*🔗 [LinkedIn](https://www.linkedin.com/in/thomas271001/)
+*📧 [thomas.anto.moothedan@gmail.com](mailto:thomas.anto.moothedan@gmail.com) 
 
 ---
 
