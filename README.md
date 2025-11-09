@@ -208,7 +208,7 @@ http://localhost:8501
 
 **Thomas Anto Moothedan**  
 **Machine Learning & Data Science Enthusiast**  
-🔗 [LinkedIn](https://www.linkedin.com/in/thomas271001/)  
+🔗 [LinkedIn](https://www.linkedin.com/in/thomasantomoothedan/)  
 📧 [thomas.anto.moothedan@gmail.com](mailto:thomas.anto.moothedan@gmail.com)
 
 ---
